@@ -70,9 +70,10 @@ public final class App {
         List<Transacao> tSusp = new ArrayList<>();
         int count = 0;
         for(Transacao t: transacoes) {
-            String aux = sdf.format(t.getData());
-            for(Transacao tr: transacoes) {
-                if(aux.equals(sdf.format(tr.getData()))){
+            int auxCliente = t.getCliente();
+                String aux = sdf.format(t.getData());
+                for (Transacao tr : transacoes) {
+                    if (auxCliente == tr.getCliente() && aux.equals(sdf.format(tr.getData()))) {
                     count ++;
                     tSusp.add(tr);
                 }
