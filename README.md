@@ -57,3 +57,35 @@ Atenção às práticas de programação segura, principalmente ao lidar com inf
 Avalie a saída do software e garanta a correta execução do software a partir dos requisitos descritos.
 Boa sorte!
 
+
+
+
+
+
+
+** RESPOSTA QUESTÃO 6: **
+
+	public class Transacao {
+		// ALTERADO OS PUBLICS PARA PRIVATE
+		private String cliente;
+		private double valor;
+		private String moeda;
+		private String tipo;
+
+		public List<Transacao> todasTransacoes = new ArrayList<>();
+
+		public void adicionarTransacao(Transacao t) {
+			todasTransacoes.add(t);
+		}
+
+		public double getSaldo(String cliente) {
+			double saldo = 0.0;
+			for (Transacao t : todasTransacoes) {
+				if (t.cliente.equals(cliente)) {
+					saldo += t.valor;
+				}
+			}
+			return saldo;
+		}
+	}
+

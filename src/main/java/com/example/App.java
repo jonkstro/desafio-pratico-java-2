@@ -64,14 +64,14 @@ public final class App {
                 Transacao transacao = new Transacao(cliente, valor, tipoMoeda, tipoTransacao, dataTransacao);
                 transacoes.add(transacao);
                 st.executeUpdate(
-                                "INSERT INTO transacao (cliente, valor, tipo_moeda, tipo_transacao, data) "
+                        "INSERT INTO transacao (cliente, valor, tipo_moeda, tipo_transacao, data) "
                                 + "VALUES ('"
                                 + cliente + "', '"
                                 + valor + "', '"
                                 + tipoMoeda.toString().toUpperCase() + "', '"
                                 + tipoTransacao.toString().toUpperCase() + "', '"
                                 + sdfSql.format(dataTransacao)
-                                +"');");
+                                + "');");
             }
 
             listaTransacao(sc, transacoes);
@@ -82,16 +82,17 @@ public final class App {
             throw new DbException(e.getMessage());
         } catch (SQLException e) {
             throw new DbException(e.getMessage());
+        } finally {
+
+            sc.close();
+
+            try {
+                st.close();
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            }
+            DB.closeConnection();
         }
-        
-        sc.close();
-        
-        try {
-            st.close();
-        } catch (SQLException e) {
-            throw new DbException(e.getMessage());
-        }
-        DB.closeConnection();
     }
 
     private static void listaTransacoesSuspeitas(SimpleDateFormat sdf, List<Transacao> transacoes) {
