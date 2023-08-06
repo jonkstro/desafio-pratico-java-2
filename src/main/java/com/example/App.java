@@ -1,5 +1,8 @@
 package com.example;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,6 +11,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+import com.example.db.DB;
+import com.example.db.DbException;
 import com.example.entities.Transacao;
 import com.example.enums.TipoMoeda;
 import com.example.enums.TipoTransacao;
@@ -29,8 +34,15 @@ public final class App {
         Locale.setDefault(Locale.US);
         Scanner sc = new Scanner(System.in);
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd");
         List<Transacao> transacoes = new ArrayList<>();
+
+        Connection conn = null;
+        Statement st = null;
         try {
+            conn = DB.getConnection();
+            st = conn.createStatement();
+
             System.out.println("SISTEMA BANCÁRIO");
             System.out.print("Insira quantas transações quer inserir: ");
             int n = sc.nextInt();
@@ -51,6 +63,15 @@ public final class App {
                 Date dataTransacao = sdf.parse(sc.nextLine());
                 Transacao transacao = new Transacao(cliente, valor, tipoMoeda, tipoTransacao, dataTransacao);
                 transacoes.add(transacao);
+                st.executeUpdate(
+                                "INSERT INTO transacao (cliente, valor, tipo_moeda, tipo_transacao, data) "
+                                + "VALUES ('"
+                                + cliente + "', '"
+                                + valor + "', '"
+                                + tipoMoeda.toString().toUpperCase() + "', '"
+                                + tipoTransacao.toString().toUpperCase() + "', '"
+                                + sdfSql.format(dataTransacao)
+                                +"');");
             }
 
             listaTransacao(sc, transacoes);
@@ -58,30 +79,39 @@ public final class App {
             listaTransacoesSuspeitas(sdf, transacoes);
 
         } catch (ParseException e) {
-            e.printStackTrace();
+            throw new DbException(e.getMessage());
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
         }
-
+        
         sc.close();
+        
+        try {
+            st.close();
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        DB.closeConnection();
     }
 
     private static void listaTransacoesSuspeitas(SimpleDateFormat sdf, List<Transacao> transacoes) {
         System.out.println("========= LISTA DE TRANSAÇÕES SUSPEITAS =========");
-        
+
         List<Transacao> tSusp = new ArrayList<>();
         int count = 0;
-        for(Transacao t: transacoes) {
+        for (Transacao t : transacoes) {
             int auxCliente = t.getCliente();
-                String aux = sdf.format(t.getData());
-                for (Transacao tr : transacoes) {
-                    if (auxCliente == tr.getCliente() && aux.equals(sdf.format(tr.getData()))) {
-                    count ++;
+            String aux = sdf.format(t.getData());
+            for (Transacao tr : transacoes) {
+                if (auxCliente == tr.getCliente() && aux.equals(sdf.format(tr.getData()))) {
+                    count++;
                     tSusp.add(tr);
                 }
             }
         }
         if (count > 3) {
-          System.out.println("\nLISTA DE TRANSACOES SUSPEITAS:");
-          System.out.println(tSusp+"\n");  
+            System.out.println("\nLISTA DE TRANSACOES SUSPEITAS:");
+            System.out.println(tSusp + "\n");
         } else {
             System.out.println("\nNão foi identificado transações suspeitas");
         }
